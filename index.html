@@ -1,162 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Controlled Image Search</title>
+    <title>Imagers</title>
     <style>
-        #controls {
-            margin-top: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 5px;
-            cursor: pointer;
-        }
-        .image-group {
-            margin: 10px;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 4px;
+            border-radius: 10px;
         }
         img {
-            max-width: 100px;
-            margin-right: 10px;
+            width: 100%; /* Ensure images resize according to column width */
+            height: auto;
+            vertical-align: top; /* Aligns the image at the top of the container */
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .image-group {
+            column-count: 5; /* Adjust number based on preference and screen size */
+            column-gap: 2px;
+            width: 100%; /* Full width */
+            margin: 0 auto;
+        }
+        .image-box {
+            position: relative;
+            break-inside: avoid; /* Prevents the element from splitting across columns */
+            margin-bottom: 2px;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        .image-title {
+            position: absolute;
+            bottom: 0;     background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(20px);
+            color: black;
+            width: 100%;
+            text-align: center;
+            padding: 5px 0;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .image-box:hover .image-title {
+            opacity: 1;
+        }
+        #spokenText {
+            font-size: 1.2em;
+            color: #333;
+            margin-top: 20px;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 140px;
+            background-color: black;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -70px;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+        .preloader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            width: 100%;
+        }
+        .loader {
+            border: 5px solid #f3f3f3; /* Light grey */
+            border-top: 5px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #queryTitle {
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(20px);
+        position: absolute;
+        position: absolute;
+        z-index: 999;
+        padding: 10PX;
+        TEXT-SHADOW: 0PX 0PX 4PX WHITE;
+        border-radius: 10px;
+        left: 20px;
+        top: 20px;
         }
     </style>
 </head>
-
 <body>
     <h1 id="queryTitle">"<span id="queryPlaceholder">Say anything</span>"</h1>
+      
     <div id="controls">
         <button id="startListening">Start Listening</button>
         <button id="stopListening">Stop Listening</button>
     </div>
-    <div id="imageContainer"></div>
-
+    <div id="imageContainer"></div> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         if (annyang) {
+             // Initialize audio elements 
+        // Annyang callback for sound detection start
+      
+            const languages = [
+                'en', 'sv', 'ceb', 'de', 'nl', 'fr', 'ru', 'it', 'es', 'pl',
+                'war', 'vi', 'ja', 'zh', 'pt', 'uk', 'ca', 'fa', 'no', 'sh',
+                'ar', 'fi', 'id', 'ro', 'cs', 'hu', 'sr', 'ko', 'ms', 'tr',
+                'min', 'eo', 'kk', 'eu', 'da', 'sk', 'bg', 'he', 'lt', 'hy',
+                'sl', 'hr', 'et', 'gl', 'nn', 'simple', 'uz', 'vo', 'la', 'el',
+                'az', 'ur', 'hi', 'th', 'ka', 'ce', 'be', 'ta', 'mk', 'mg',
+                'oc', 'lv', 'ky', 'tt', 'bs', 'tg', 'sq', 'new', 'pms', 'tl',
+                'te', 'be-tarask', 'br', 'ast', 'ml', 'bn', 'io', 'af', 'pnb',
+                'gu', 'nds', 'scn', 'bpy', 'pa', 'azb', 'ku', 'mn', 'su', 'si',
+                'kn', 'diq', 'kk', 'am', 'ckb', 'ia', 'nap', 'bug', 'bat-smg', 'wa'
+            ];
             
-        const languages = [
-            'en', 'sv', 'ceb', 'de', 'nl', 'fr', 'ru', 'it', 'es', 'pl',
-            'war', 'vi', 'ja', 'zh', 'pt', 'uk', 'ca', 'fa', 'no', 'sh',
-            'ar', 'fi', 'id', 'ro', 'cs', 'hu', 'sr', 'ko', 'ms', 'tr',
-            'min', 'eo', 'kk', 'eu', 'da', 'sk', 'bg', 'he', 'lt', 'hy',
-            'sl', 'hr', 'et', 'gl', 'nn', 'simple', 'uz', 'vo', 'la', 'el',
-            'az', 'ur', 'hi', 'th', 'ka', 'ce', 'be', 'ta', 'mk', 'mg',
-            'oc', 'lv', 'ky', 'tt', 'bs', 'tg', 'sq', 'new', 'pms', 'tl',
-            'te', 'be-tarask', 'br', 'ast', 'ml', 'bn', 'io', 'af', 'pnb',
-            'gu', 'nds', 'scn', 'bpy', 'pa', 'azb', 'ku', 'mn', 'su', 'si',
-            'kn', 'diq', 'am', 'ckb', 'ia', 'nap', 'bug', 'bat-smg', 'wa'
-        ];
-        
-         const langNames = {
-            en: 'English', sv: 'Swedish', ceb: 'Cebuano', de: 'German', nl: 'Dutch',
-            fr: 'French', ru: 'Russian', it: 'Italian', es: 'Spanish', pl: 'Polish',
-            war: 'Waray', vi: 'Vietnamese', ja: 'Japanese', zh: 'Chinese', pt: 'Portuguese',
-            uk: 'Ukrainian', ca: 'Catalan', fa: 'Persian', no: 'Norwegian', sh: 'Serbo-Croatian',
-            ar: 'Arabic', fi: 'Finnish', id: 'Indonesian', ro: 'Romanian', cs: 'Czech',
-            hu: 'Hungarian', sr: 'Serbian', ko: 'Korean', ms: 'Malay', tr: 'Turkish',
-            min: 'Minangkabau', eo: 'Esperanto', kk: 'Kazakh', eu: 'Basque', da: 'Danish',
-            sk: 'Slovak', bg: 'Bulgarian', he: 'Hebrew', lt: 'Lithuanian', hy: 'Armenian',
-            sl: 'Slovenian', hr: 'Croatian', et: 'Estonian', gl: 'Galician', nn: 'Norwegian Nynorsk',
-            simple: 'Simple English', uz: 'Uzbek', vo: 'Volapük', la: 'Latin', el: 'Greek',
-            az: 'Azerbaijani', ur: 'Urdu', hi: 'Hindi', th: 'Thai', ka: 'Georgian',
-            ce: 'Chechen', be: 'Belarusian', ta: 'Tamil', mk: 'Macedonian', mg: 'Malagasy',
-            oc: 'Occitan', lv: 'Latvian', ky: 'Kirghiz', tt: 'Tatar', bs: 'Bosnian',
-            tg: 'Tajik', sq: 'Albanian', new: 'Newar', pms: 'Piemontese', tl: 'Tagalog',
-            te: 'Telugu', 'be-tarask': 'Belarusian (Taraskievica)', br: 'Breton', ast: 'Asturian', ml: 'Malayalam',
-            bn: 'Bengali', io: 'Ido', af: 'Afrikaans', pnb: 'Western Punjabi', gu: 'Gujarati',
-            nds: 'Low Saxon', scn: 'Sicilian', bpy: 'Bishnupriya Manipuri', pa: 'Punjabi', azb: 'South Azerbaijani',
-            ku: 'Kurdish', mn: 'Mongolian', su: 'Sundanese', si: 'Sinhalese', kn: 'Kannada',
-            diq: 'Zazaki', am: 'Amharic', ckb: 'Central Kurdish', ia: 'Interlingua', nap: 'Neapolitan',
-            bug: 'Buginese', 'bat-smg': 'Samogitian', wa: 'Walloon'
+            const langNames = {
+                en: 'English', sv: 'Swedish', ceb: 'Cebuano', de: 'German', nl: 'Dutch',
+                fr: 'French', ru: 'Russian', it: 'Italian', es: 'Spanish', pl: 'Polish',
+                war: 'Waray', vi: 'Vietnamese', ja: 'Japanese', zh: 'Chinese', pt: 'Portuguese',
+                uk: 'Ukrainian', ca: 'Catalan', fa: 'Persian', no: 'Norwegian', sh: 'Serbo-Croatian',
+                ar: 'Arabic', fi: 'Finnish', id: 'Indonesian', ro: 'Romanian', cs: 'Czech',
+                hu: 'Hungarian', sr: 'Serbian', ko: 'Korean', ms: 'Malay', tr: 'Turkish',
+                min: 'Minangkabau', eo: 'Esperanto', kk: 'Kazakh', eu: 'Basque', da: 'Danish',
+                sk: 'Slovak', bg: 'Bulgarian', he: 'Hebrew', lt: 'Lithuanian', hy: 'Armenian',
+                sl: 'Slovenian', hr: 'Croatian', et: 'Estonian', gl: 'Galician', nn: 'Norwegian Nynorsk',
+                simple: 'Simple English', uz: 'Uzbek', vo: 'Volapük', la: 'Latin', el: 'Greek',
+                az: 'Azerbaijani', ur: 'Urdu', hi: 'Hindi', th: 'Thai', ka: 'Georgian',
+                ce: 'Chechen', be: 'Belarusian', ta: 'Tamil', mk: 'Macedonian', mg: 'Malagasy',
+                oc: 'Occitan', lv: 'Latvian', ky: 'Kirghiz', tt: 'Tatar', bs: 'Bosnian',
+                tg: 'Tajik', sq: 'Albanian', new: 'Newar', pms: 'Piemontese', tl: 'Tagalog',
+                te: 'Telugu', 'be-tarask': 'Belarusian (Taraskievica)', br: 'Breton', ast: 'Asturian', ml: 'Malayalam',
+                bn: 'Bengali', io: 'Ido', af: 'Afrikaans', pnb: 'Western Punjabi', gu: 'Gujarati',
+                nds: 'Low Saxon', scn: 'Sicilian', bpy: 'Bishnupriya Manipuri', pa: 'Punjabi', azb: 'South Azerbaijani',
+                ku: 'Kurdish', mn: 'Mongolian', su: 'Sundanese', si: 'Sinhalese', kn: 'Kannada',
+                diq: 'Zazaki', am: 'Amharic', ckb: 'Central Kurdish', ia: 'Interlingua', nap: 'Neapolitan',
+                bug: 'Buginese', 'bat-smg': 'Samogitian', wa: 'Walloon'
+            };
+            let displayedImages = [];
+            let displayedTitles = [];
+const showImages = function(tag) {
+            tag = tag.replace(/\.$/, ''); // Clean the tag
+            document.getElementById('queryPlaceholder').textContent = tag;
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = ''; // Clear the container
+            fetchImages(tag, 'en'); // Fetch images starting with English
         };
-            const showImages = function (tag) {
-                tag = tag.replace(/\.$/, '');
-                document.getElementById('queryPlaceholder').textContent = tag;
-                const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = '';
-                fetchImages(tag, 'en');
-            };
+        const fetchImages = function(tag, lang) {
+            const url = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(tag)}&format=json&origin=*`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.query.search.length > 0) {
+                        const title = data.query.search[0].title;
+                        getImage(title, lang);
+                    } else {
+                        appendNoResults(lang);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    appendError(lang);
+                });
+        };
+        const getImage = function(title, lang) {
+            const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages|info&inprop=url&pithumbsize=500&format=json&origin=*`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const pages = data.query.pages;
+                    const pageId = Object.keys(pages)[0];
+                    if (pages[pageId].thumbnail) {
+                        appendImage(pages[pageId].thumbnail.source, pages[pageId].fullurl, title, lang);
+                    }
+                })
+                .catch(error => {
+                    console.error('Image fetch error:', error);
+                    appendError(lang);
+                });
+        };
+        const appendImage = function(src, link, title, lang) {
+            const imageContainer = document.getElementById('imageContainer');
+            const imageGroup = document.createElement('div');
+            imageGroup.className = 'image-group';
+            const imageBox = document.createElement('div');
+            imageBox.className = 'image-box';
+            const imageLink = document.createElement('a');
+            imageLink.href = link;
+            imageLink.target = '_blank';
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = `Picture of ${title}`;
+            const imageTitle = document.createElement('div');
+            imageTitle.className = 'image-title';
+            imageTitle.textContent = `${title} (${langNames[lang]})`;
+            imageLink.appendChild(img);
+            imageLink.appendChild(imageTitle);
+            imageBox.appendChild(imageLink);
+            imageGroup.appendChild(imageBox);
+            imageContainer.appendChild(imageGroup);
+        };
+        const appendNoResults = function(lang) {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = `<p>No results found for "${tag}" in ${langNames[lang]}.</p>`;
+        };
+        const appendError = function(lang) {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = `<p>Error retrieving information for ${langNames[lang]}.</p>`;
+        };
+        const commands = {
+            '*tag': showImages
+        };
 
-            const fetchImages = function (tag, lang) {
-                const url = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(tag)}&format=json&origin=*`;
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.query.search.length > 0) {
-                            const title = data.query.search[0].title;
-                            getImage(title, lang);
-                        } else {
-                            appendNoResults(lang);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Fetch error:', error);
-                        appendError(lang);
-                    });
-            };
+        annyang.addCommands(commands);
+        annyang.start({ autoRestart: true, continuous: false });
+        document.getElementById('startListening').onclick = function () {
+            annyang.start({ autoRestart: true, continuous: false });
+        };
 
-            const getImage = function (title, lang) {
-                const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages|info&inprop=url&pithumbsize=500&format=json&origin=*`;
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        const pages = data.query.pages;
-                        const pageId = Object.keys(pages)[0];
-                        if (pages[pageId].thumbnail) {
-                            appendImage(pages[pageId].thumbnail.source, pages[pageId].fullurl, title, lang);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Image fetch error:', error);
-                        appendError(lang);
-                    });
-            };
+        document.getElementById('stopListening').onclick = function () {
+            annyang.abort();
+        };
+    } else {
 
-            const appendImage = function (src, link, title, lang) {
-                const imageContainer = document.getElementById('imageContainer');
-                const imageGroup = document.createElement('div');
-                imageGroup.className = 'image-group';
-                const imageLink = document.createElement('a');
-                imageLink.href = link;
-                imageLink.target = '_blank';
-                const img = document.createElement('img');
-                img.src = src;
-                img.alt = `Picture of ${title}`;
-                imageLink.appendChild(img);
-                imageGroup.appendChild(imageLink);
-                imageContainer.appendChild(imageGroup);
-            };
-
-            const appendNoResults = function (lang) {
-                const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = `<p>No results found for the query in ${lang}.</p>`;
-            };
-
-            const appendError = function (lang) {
-                const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = `<p>Error retrieving information for ${lang}.</p>`;
-            };
-
-            const commands = {
-                '*tag': showImages
-            };
-            annyang.addCommands(commands);
-
-            document.getElementById('startListening').onclick = function () {
-                annyang.start({ autoRestart: true, continuous: false });
-            };
-
-            document.getElementById('stopListening').onclick = function () {
-                annyang.abort();
-            };
-        } else {
-            document.getElementById('imageContainer').innerHTML = "<p>Your browser does not support voice recognition.</p>";
-        }
+    
+          
+            
+     
+    
+    
+  
+        document.getElementById('imageContainer').innerHTML = "<p>Your browser does not support voice recognition.</p>";
+    }
     </script>
 </body>
-
 </html>
