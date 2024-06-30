@@ -4,26 +4,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Voice Controlled Image Search</title>
+    <style>
+        #controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .image-group {
+            margin: 10px;
+        }
+        img {
+            max-width: 100px;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 
 <body>
     <h1 id="queryTitle">"<span id="queryPlaceholder">Say anything</span>"</h1>
-
+    <div id="controls">
+        <button id="startListening">Start Listening</button>
+        <button id="stopListening">Stop Listening</button>
+    </div>
     <div id="imageContainer"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         if (annyang) {
-            let displayedImages = [];
-            let displayedTitles = [];
+            
+        const languages = [
+            'en', 'sv', 'ceb', 'de', 'nl', 'fr', 'ru', 'it', 'es', 'pl',
+            'war', 'vi', 'ja', 'zh', 'pt', 'uk', 'ca', 'fa', 'no', 'sh',
+            'ar', 'fi', 'id', 'ro', 'cs', 'hu', 'sr', 'ko', 'ms', 'tr',
+            'min', 'eo', 'kk', 'eu', 'da', 'sk', 'bg', 'he', 'lt', 'hy',
+            'sl', 'hr', 'et', 'gl', 'nn', 'simple', 'uz', 'vo', 'la', 'el',
+            'az', 'ur', 'hi', 'th', 'ka', 'ce', 'be', 'ta', 'mk', 'mg',
+            'oc', 'lv', 'ky', 'tt', 'bs', 'tg', 'sq', 'new', 'pms', 'tl',
+            'te', 'be-tarask', 'br', 'ast', 'ml', 'bn', 'io', 'af', 'pnb',
+            'gu', 'nds', 'scn', 'bpy', 'pa', 'azb', 'ku', 'mn', 'su', 'si',
+            'kn', 'diq', 'am', 'ckb', 'ia', 'nap', 'bug', 'bat-smg', 'wa'
+        ];
+        
+         const langNames = {
+            en: 'English', sv: 'Swedish', ceb: 'Cebuano', de: 'German', nl: 'Dutch',
+            fr: 'French', ru: 'Russian', it: 'Italian', es: 'Spanish', pl: 'Polish',
+            war: 'Waray', vi: 'Vietnamese', ja: 'Japanese', zh: 'Chinese', pt: 'Portuguese',
+            uk: 'Ukrainian', ca: 'Catalan', fa: 'Persian', no: 'Norwegian', sh: 'Serbo-Croatian',
+            ar: 'Arabic', fi: 'Finnish', id: 'Indonesian', ro: 'Romanian', cs: 'Czech',
+            hu: 'Hungarian', sr: 'Serbian', ko: 'Korean', ms: 'Malay', tr: 'Turkish',
+            min: 'Minangkabau', eo: 'Esperanto', kk: 'Kazakh', eu: 'Basque', da: 'Danish',
+            sk: 'Slovak', bg: 'Bulgarian', he: 'Hebrew', lt: 'Lithuanian', hy: 'Armenian',
+            sl: 'Slovenian', hr: 'Croatian', et: 'Estonian', gl: 'Galician', nn: 'Norwegian Nynorsk',
+            simple: 'Simple English', uz: 'Uzbek', vo: 'Volapük', la: 'Latin', el: 'Greek',
+            az: 'Azerbaijani', ur: 'Urdu', hi: 'Hindi', th: 'Thai', ka: 'Georgian',
+            ce: 'Chechen', be: 'Belarusian', ta: 'Tamil', mk: 'Macedonian', mg: 'Malagasy',
+            oc: 'Occitan', lv: 'Latvian', ky: 'Kirghiz', tt: 'Tatar', bs: 'Bosnian',
+            tg: 'Tajik', sq: 'Albanian', new: 'Newar', pms: 'Piemontese', tl: 'Tagalog',
+            te: 'Telugu', 'be-tarask': 'Belarusian (Taraskievica)', br: 'Breton', ast: 'Asturian', ml: 'Malayalam',
+            bn: 'Bengali', io: 'Ido', af: 'Afrikaans', pnb: 'Western Punjabi', gu: 'Gujarati',
+            nds: 'Low Saxon', scn: 'Sicilian', bpy: 'Bishnupriya Manipuri', pa: 'Punjabi', azb: 'South Azerbaijani',
+            ku: 'Kurdish', mn: 'Mongolian', su: 'Sundanese', si: 'Sinhalese', kn: 'Kannada',
+            diq: 'Zazaki', am: 'Amharic', ckb: 'Central Kurdish', ia: 'Interlingua', nap: 'Neapolitan',
+            bug: 'Buginese', 'bat-smg': 'Samogitian', wa: 'Walloon'
+        };
             const showImages = function (tag) {
-                tag = tag.replace(/\.$/, ''); // Clean the tag
+                tag = tag.replace(/\.$/, '');
                 document.getElementById('queryPlaceholder').textContent = tag;
                 const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = ''; // Clear the container
-                fetchImages(tag, 'en'); // Fetch images starting with English
+                imageContainer.innerHTML = '';
+                fetchImages(tag, 'en');
             };
 
             const fetchImages = function (tag, lang) {
@@ -65,42 +120,39 @@
                 const imageContainer = document.getElementById('imageContainer');
                 const imageGroup = document.createElement('div');
                 imageGroup.className = 'image-group';
-                const imageBox = document.createElement('div');
-                imageBox.className = 'image-box';
                 const imageLink = document.createElement('a');
                 imageLink.href = link;
                 imageLink.target = '_blank';
                 const img = document.createElement('img');
                 img.src = src;
                 img.alt = `Picture of ${title}`;
-                const imageTitle = document.createElement('div');
-                imageTitle.className = 'image-title';
-                imageTitle.textContent = `${title} (${langNames[lang]})`;
-
                 imageLink.appendChild(img);
-                imageLink.appendChild(imageTitle);
-                imageBox.appendChild(imageLink);
-                imageGroup.appendChild(imageBox);
+                imageGroup.appendChild(imageLink);
                 imageContainer.appendChild(imageGroup);
             };
 
             const appendNoResults = function (lang) {
                 const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = `<p>No results found for "${tag}" in ${langNames[lang]}.</p>`;
+                imageContainer.innerHTML = `<p>No results found for the query in ${lang}.</p>`;
             };
 
             const appendError = function (lang) {
                 const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = `<p>Error retrieving information for ${langNames[lang]}.</p>`;
+                imageContainer.innerHTML = `<p>Error retrieving information for ${lang}.</p>`;
             };
 
             const commands = {
                 '*tag': showImages
             };
-            console.log(commands);
             annyang.addCommands(commands);
-            annyang.start({ autoRestart: true, continuous: false });
 
+            document.getElementById('startListening').onclick = function () {
+                annyang.start({ autoRestart: true, continuous: false });
+            };
+
+            document.getElementById('stopListening').onclick = function () {
+                annyang.abort();
+            };
         } else {
             document.getElementById('imageContainer').innerHTML = "<p>Your browser does not support voice recognition.</p>";
         }
